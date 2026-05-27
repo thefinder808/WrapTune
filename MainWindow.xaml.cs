@@ -13,6 +13,12 @@ namespace WrapTune;
 
 public partial class MainWindow : Window
 {
+    // File extensions accepted as Win32 setup files. Used by both the
+    // "Browse setup file" dialog and the auto-detect when a source folder
+    // is picked. Keep these two callers in sync via this single list.
+    private static readonly string[] _installerExtensions =
+        [".exe", ".msi", ".ps1", ".cmd", ".bat"];
+
     private Process? _runningProcess;
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
@@ -118,10 +124,11 @@ public partial class MainWindow : Window
     private void BtnBrowseSetup_Click(object sender, RoutedEventArgs e)
     {
         var initDir = Directory.Exists(TxtSourceFolder.Text) ? TxtSourceFolder.Text : null;
+        var pattern = string.Join(";", _installerExtensions.Select(e => "*" + e));
         var dlg = new OpenFileDialog
         {
             Title = "Select the setup file",
-            Filter = "Installers (*.exe;*.msi)|*.exe;*.msi|All files|*.*"
+            Filter = $"Installers ({pattern})|{pattern}|All files|*.*"
         };
         if (initDir != null) dlg.InitialDirectory = initDir;
         if (dlg.ShowDialog() == true)
@@ -154,12 +161,8 @@ public partial class MainWindow : Window
     {
         if (!Directory.Exists(folderPath)) return;
         var installers = Directory.GetFiles(folderPath)
-            .Where(f =>
-            {
-                var ext = Path.GetExtension(f);
-                return ext.Equals(".exe", StringComparison.OrdinalIgnoreCase)
-                    || ext.Equals(".msi", StringComparison.OrdinalIgnoreCase);
-            })
+            .Where(f => _installerExtensions.Contains(
+                Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
             .ToArray();
 
         TxtSetupFile.Text = installers.Length == 1 ? installers[0] : string.Empty;
