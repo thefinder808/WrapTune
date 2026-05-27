@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+publish/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# WiX / MSI build outputs
+*.msi
+*.wixpdb
+*.wixobj
+
+# Per-user settings file (contains local paths)
+*.settings.json
+
+# Bundled third-party binary (download separately from Microsoft)
+Installer/Bundled/IntuneWinAppUtil.exe
+
+# OS junk
+.DS_Store
+Thumbs.db
