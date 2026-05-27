@@ -22,7 +22,7 @@ A friendly GUI for Microsoft's `IntuneWinAppUtil.exe` — the Win32 Content Prep
 
 ## Install
 
-**Option A — Pre-built MSI** (from GitHub Releases, once published).
+**Option A — Pre-built MSI**: grab the latest `WrapTune.msi` from [Releases](https://github.com/thefinder808/WrapTune/releases).
 
 **Option B — Build from source** (see below).
 

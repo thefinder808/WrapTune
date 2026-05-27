@@ -1,0 +1,54 @@
+name: Release
+
+# Builds WrapTune.msi on Windows when a tag like v1.0.1 is pushed,
+# then attaches the MSI to a matching GitHub Release.
+# Idempotent: if a release for the tag already exists, uploads to it
+# instead of creating a new one (lets you publish manually first).
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-msi:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Fetch IntuneWinAppUtil.exe from Microsoft
+        shell: pwsh
+        run: |
+          git clone --depth=1 https://github.com/microsoft/Microsoft-Win32-Content-Prep-Tool.git tmp
+          New-Item -ItemType Directory -Force -Path Installer/Bundled | Out-Null
+          Copy-Item tmp/IntuneWinAppUtil.exe Installer/Bundled/IntuneWinAppUtil.exe
+          Remove-Item -Recurse -Force tmp
+
+      - name: Build MSI
+        shell: pwsh
+        run: ./Build-Installer.ps1
+
+      - name: Publish to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$env:TAG" 2>$null | Out-Null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $env:TAG already exists — uploading MSI to it"
+            gh release upload "$env:TAG" WrapTune.msi --clobber
+          } else {
+            Write-Host "Creating new release $env:TAG"
+            gh release create "$env:TAG" WrapTune.msi --title "$env:TAG" --generate-notes
+          }
