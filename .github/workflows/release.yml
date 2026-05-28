@@ -48,7 +48,29 @@ jobs:
 
       - name: Build MSI
         shell: pwsh
-        run: ./Build-Installer.ps1
+        # Tag form: v1.2.3  ->  MSI version: 1.2.3.0
+        # The trailing .0 matches .NET's 4-part AssemblyVersion/FileVersion
+        # shape; MSI's MajorUpgrade comparison only looks at Major.Minor.Build
+        # (the 4th field is ignored for upgrade detection).
+        #
+        # The version is templated into Package.wxs via WiX preprocessor and
+        # also flows to WrapTune.exe's AssemblyVersion/FileVersion through
+        # .NET SDK's default behavior — works because WrapTune.csproj doesn't
+        # override those properties. Keeps ARP entry, file metadata, and
+        # MajorUpgrade comparisons all consistent.
+        #
+        # The tag-shape guard below fails fast on pre-release labels
+        # (e.g. v1.2.3-rc1) and tags with too many/few parts, before the
+        # expensive build steps run.
+        run: |
+          $tag = "${{ github.ref_name }}"
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            throw "Tag '$tag' must be of the form 'vMAJOR.MINOR.PATCH'. Pre-release labels and non-strict-SemVer tags are not supported by the MSI version pipeline."
+          }
+          $tagVersion = $tag -replace '^v',''
+          $msiVersion = "$tagVersion.0"
+          Write-Host "Building MSI for tag $tag -> version $msiVersion"
+          ./Build-Installer.ps1 -Version $msiVersion
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2

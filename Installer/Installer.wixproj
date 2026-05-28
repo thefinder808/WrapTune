@@ -2,6 +2,10 @@
   <PropertyGroup>
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
+    <!-- WiX preprocessor variable $(var.Version), driven by the MSBuild $(Version) property.
+         Build-Installer.ps1 passes -p:Version=X.Y.Z.0; CI derives X.Y.Z from the git tag.
+         Local builds default to 0.0.0.0 if -Version is not specified. -->
+    <DefineConstants>Version=$(Version)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
