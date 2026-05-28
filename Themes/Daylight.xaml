@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Daylight palette (light mode) -->
+    <Color x:Key="WindowBgColor">#FFF6F5F2</Color>
+    <Color x:Key="PanelBgColor">#FFFFFFFF</Color>
+    <Color x:Key="Panel2BgColor">#FFFAFAF8</Color>
+    <Color x:Key="LogBgColor">#FFFBFBF8</Color>
+    <Color x:Key="BorderColor">#FFE6E3DC</Color>
+    <Color x:Key="BorderSoftColor">#FFEEECE7</Color>
+    <Color x:Key="FgColor">#FF1C1C1A</Color>
+    <Color x:Key="DimColor">#FF6B6A64</Color>
+    <Color x:Key="DimmerColor">#FF9A988F</Color>
+    <Color x:Key="AccentColor">#FF2F5D50</Color>
+    <Color x:Key="AccentSoftColor">#FFE8EFED</Color>
+    <Color x:Key="AccentOnColor">#FFFFFFFF</Color>
+    <Color x:Key="SuccessColor">#FF2F8060</Color>
+    <Color x:Key="ErrorColor">#FFB23A3A</Color>
+
+    <SolidColorBrush x:Key="WindowBg" Color="{StaticResource WindowBgColor}"/>
+    <SolidColorBrush x:Key="PanelBg" Color="{StaticResource PanelBgColor}"/>
+    <SolidColorBrush x:Key="Panel2Bg" Color="{StaticResource Panel2BgColor}"/>
+    <SolidColorBrush x:Key="LogBg" Color="{StaticResource LogBgColor}"/>
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="BorderSoftBrush" Color="{StaticResource BorderSoftColor}"/>
+    <SolidColorBrush x:Key="Fg" Color="{StaticResource FgColor}"/>
+    <SolidColorBrush x:Key="Dim" Color="{StaticResource DimColor}"/>
+    <SolidColorBrush x:Key="Dimmer" Color="{StaticResource DimmerColor}"/>
+    <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="{StaticResource AccentSoftColor}"/>
+    <SolidColorBrush x:Key="AccentOn" Color="{StaticResource AccentOnColor}"/>
+    <SolidColorBrush x:Key="Success" Color="{StaticResource SuccessColor}"/>
+    <SolidColorBrush x:Key="Error" Color="{StaticResource ErrorColor}"/>
+
+    <!-- 0 = light title bar (DwmSetWindowAttribute uses this) -->
+    <sys:Int32 xmlns:sys="clr-namespace:System;assembly=mscorlib" x:Key="DarkTitleBar">0</sys:Int32>
+
+</ResourceDictionary>

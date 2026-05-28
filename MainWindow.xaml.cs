@@ -20,6 +20,7 @@ public partial class MainWindow : Window
         [".exe", ".msi", ".ps1", ".cmd", ".bat"];
 
     private Process? _runningProcess;
+    private string _theme = "Daylight";
 
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attribute, ref int value, int size);
@@ -29,13 +30,18 @@ public partial class MainWindow : Window
         InitializeComponent();
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         LoadSettings();
+        // LoadSettings sets _theme from persisted settings; apply it now
+        // that XAML is initialized so the right palette is live from frame 1.
+        ApplyTheme(_theme);
     }
 
     private void ApplyDarkTitleBar()
     {
         var hwnd = new WindowInteropHelper(this).Handle;
         if (hwnd == IntPtr.Zero) return;
-        int value = 1;
+        // Theme dictionaries publish DarkTitleBar = 0 (light) or 1 (dark).
+        // Default to dark for backwards compatibility before theme loads.
+        int value = (Application.Current.Resources["DarkTitleBar"] as int?) ?? 1;
         // DWMWA_USE_IMMERSIVE_DARK_MODE = 20 (Win10 20H1+ / Win11)
         if (DwmSetWindowAttribute(hwnd, 20, ref value, sizeof(int)) != 0)
         {
@@ -62,6 +68,9 @@ public partial class MainWindow : Window
 
         if (!string.IsNullOrEmpty(settings.OutputFolder))
             TxtOutputFolder.Text = settings.OutputFolder;
+
+        _theme = string.IsNullOrEmpty(settings.Theme) ? "Daylight" : settings.Theme;
+        ChkOverwrite.IsChecked = settings.Overwrite;
     }
 
     private static string? FindIntuneWinAppUtil()
@@ -94,8 +103,35 @@ public partial class MainWindow : Window
         {
             ExePath = TxtExePath.Text,
             SourceFolder = TxtSourceFolder.Text,
-            OutputFolder = TxtOutputFolder.Text
+            OutputFolder = TxtOutputFolder.Text,
+            Theme = _theme,
+            Overwrite = ChkOverwrite.IsChecked == true,
         }.Save();
+    }
+
+    // ── Theme handling ─────────────────────────────────────────────────────
+
+    private void ApplyTheme(string name)
+    {
+        var safe = name == "Midnight" ? "Midnight" : "Daylight";
+        var uri = new Uri($"Themes/{safe}.xaml", UriKind.Relative);
+        var dict = new ResourceDictionary { Source = uri };
+
+        var dicts = Application.Current.Resources.MergedDictionaries;
+        dicts.Clear();
+        dicts.Add(dict);
+
+        _theme = safe;
+        BtnTheme.Content = safe == "Midnight" ? "◑ Light" : "◐ Dark";
+
+        // Re-poke DWM so the title bar follows the new palette.
+        if (IsLoaded) ApplyDarkTitleBar();
+    }
+
+    private void BtnTheme_Click(object sender, RoutedEventArgs e)
+    {
+        ApplyTheme(_theme == "Midnight" ? "Daylight" : "Midnight");
+        SaveCurrentSettings();
     }
 
     // ── Browse handlers ────────────────────────────────────────────────────
@@ -275,7 +311,7 @@ public partial class MainWindow : Window
         BtnOpenOutput.Visibility = Visibility.Collapsed;
         BtnPackage.IsEnabled = false;
         TxtStatus.Text = "Packaging...";
-        TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2d8b8b"));
+        TxtStatus.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Accent");
 
         AppendOutput($"Executing: IntuneWinAppUtil.exe {args}");
         AppendOutput(new string('-', 60));
@@ -316,14 +352,14 @@ public partial class MainWindow : Window
                 {
                     AppendOutput("Package created successfully!");
                     TxtStatus.Text = "Done \u2014 .intunewin file created.";
-                    TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#52c7a0"));
+                    TxtStatus.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Success");
                     BtnOpenOutput.Visibility = Visibility.Visible;
                 }
                 else
                 {
                     AppendOutput($"Process exited with code: {exitCode}");
                     TxtStatus.Text = $"Failed \u2014 exit code {exitCode}";
-                    TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#e06c60"));
+                    TxtStatus.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Error");
                 }
                 BtnPackage.IsEnabled = true;
             });
@@ -341,7 +377,7 @@ public partial class MainWindow : Window
         {
             AppendOutput($"Failed to start process: {ex.Message}");
             TxtStatus.Text = "Failed to launch IntuneWinAppUtil.exe";
-            TxtStatus.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#e06c60"));
+            TxtStatus.SetResourceReference(System.Windows.Controls.TextBlock.ForegroundProperty, "Error");
             BtnPackage.IsEnabled = true;
             _runningProcess = null;
             process.Dispose();

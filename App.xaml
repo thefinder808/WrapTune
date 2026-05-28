@@ -2,4 +2,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml">
+    <!-- Default theme is preloaded so the window has colors from frame 1.
+         MainWindow.xaml.cs:ApplyTheme() replaces this with the user's
+         persisted choice (Daylight or Midnight) right after InitializeComponent. -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Daylight.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
 </Application>

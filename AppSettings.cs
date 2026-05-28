@@ -10,6 +10,12 @@ public sealed class AppSettings
     public string? SourceFolder { get; set; }
     public string? OutputFolder { get; set; }
 
+    /// <summary>"Daylight" (default) or "Midnight".</summary>
+    public string Theme { get; set; } = "Daylight";
+
+    /// <summary>Persist the Overwrite checkbox state across runs.</summary>
+    public bool Overwrite { get; set; } = true;
+
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     // Per-user settings under %LOCALAPPDATA%\WrapTune\settings.json.
