@@ -38,6 +38,14 @@ jobs:
           Copy-Item tmp/IntuneWinAppUtil.exe Installer/Bundled/IntuneWinAppUtil.exe
           Remove-Item -Recurse -Force tmp
 
+      - name: Regenerate icon
+        # Generate-Icon.ps1 uses System.Drawing which is fully available on
+        # windows-latest. This keeps WrapTune.ico in sync with the script
+        # (the source of truth) even if the committed .ico is stale because
+        # someone authored on a non-Windows machine.
+        shell: pwsh
+        run: ./Generate-Icon.ps1
+
       - name: Build MSI
         shell: pwsh
         run: ./Build-Installer.ps1
