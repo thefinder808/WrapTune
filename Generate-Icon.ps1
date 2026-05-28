@@ -46,12 +46,12 @@ function New-WrapTuneIcon {
     $midBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(43, 191, 169))
     $topBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(94, 234, 212))
 
-    # Bottom slab — points: (50,70) (80,56) (50,42) (20,56)
-    [System.Drawing.PointF[]]$bot = @((P 50 70), (P 80 56), (P 50 42), (P 20 56))
-    # Middle slab — (50,56) (80,42) (50,28) (20,42)
-    [System.Drawing.PointF[]]$mid = @((P 50 56), (P 80 42), (P 50 28), (P 20 42))
-    # Top slab — (50,42) (80,28) (50,14) (20,28)
-    [System.Drawing.PointF[]]$top = @((P 50 42), (P 80 28), (P 50 14), (P 20 28))
+    # Bottom slab — points: (50,78) (80,64) (50,50) (20,64)
+    [System.Drawing.PointF[]]$bot = @((P 50 78), (P 80 64), (P 50 50), (P 20 64))
+    # Middle slab — (50,64) (80,50) (50,36) (20,50)
+    [System.Drawing.PointF[]]$mid = @((P 50 64), (P 80 50), (P 50 36), (P 20 50))
+    # Top slab — (50,50) (80,36) (50,22) (20,36)
+    [System.Drawing.PointF[]]$top = @((P 50 50), (P 80 36), (P 50 22), (P 20 36))
 
     $g.FillPolygon($botBrush, $bot)
     $g.FillPolygon($midBrush, $mid)
