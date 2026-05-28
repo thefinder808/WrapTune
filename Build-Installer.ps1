@@ -14,9 +14,11 @@
 
 param(
     [string]$Configuration = 'Release',
-    # Four-part MSI version (Major.Minor.Build.Revision). Defaults to 0.0.0.0
-    # for local builds so they're unambiguously NOT a release. CI passes the
-    # real value derived from the git tag (e.g. v1.1.2 -> 1.1.2.0).
+    # MSI version. MajorUpgrade compares only Major.Minor.Build — the 4th
+    # part (revision) is decorative, appended to match .NET's 4-part
+    # AssemblyVersion/FileVersion shape. Defaults to 0.0.0.0 for local
+    # builds so they're unambiguously NOT a release. CI passes the real
+    # value derived from the git tag (e.g. v1.1.2 -> 1.1.2.0).
     [string]$Version = '0.0.0.0'
 )
 
