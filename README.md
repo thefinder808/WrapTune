@@ -9,8 +9,11 @@ A friendly GUI for Microsoft's `IntuneWinAppUtil.exe` — the Win32 Content Prep
 ## Features
 
 - Auto-detects `IntuneWinAppUtil.exe` (app directory → `PATH` → saved setting)
-- Remembers last-used source / output folders between runs
-- Native dark title bar on Windows 10/11
+- Light + dark themes with a one-click toggle (`◐ Dark` / `◑ Light` in the header)
+- Remembers last-used paths, theme, and Overwrite-checkbox state between runs
+- Drag-and-drop a folder or `.exe`/`.msi`/`.ps1` onto any input field
+- Native dark/light title bar follows the chosen theme (Win10 20H1+ / Win11)
+- Code-signed installer (Azure Artifact Signing) — no "Unknown publisher" prompt
 - Self-contained single-file `.exe` — no .NET runtime required on target machines
 - MSI installer with optional desktop shortcut
 
@@ -47,18 +50,21 @@ A friendly GUI for Microsoft's `IntuneWinAppUtil.exe` — the Win32 Content Prep
 4. **Output folder** — where the resulting `.intunewin` will be written.
 5. Click **Wrap**.
 
-Settings persist between runs in `WrapTune.settings.json` next to the executable.
+Settings persist per-user in `%LOCALAPPDATA%\WrapTune\settings.json` — no admin rights needed to run.
 
 ## Project layout
 
 ```
 .
-├── App.xaml / App.xaml.cs        WPF app entry
-├── MainWindow.xaml / .cs         Main window + wrap logic
+├── App.xaml / App.xaml.cs        WPF entry (preloads default theme)
+├── MainWindow.xaml / .cs         Main window + wrap logic + theme handling
 ├── AppSettings.cs                JSON-backed settings
+├── Themes/
+│   ├── Daylight.xaml             Light palette
+│   └── Midnight.xaml             Dark palette
 ├── WrapTune.csproj               .NET 8 WPF project
 ├── Build-Installer.ps1           Publish + MSI build script
-├── Generate-Icon.ps1             Icon generator
+├── Generate-Icon.ps1             Icon generator (regenerated in CI)
 └── Installer/
     ├── Installer.wixproj         WiX MSI project
     ├── Package.wxs               MSI package definition
