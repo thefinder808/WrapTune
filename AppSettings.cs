@@ -12,10 +12,17 @@ public sealed class AppSettings
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
+    // Per-user settings under %LOCALAPPDATA%\WrapTune\settings.json.
+    // This lets WrapTune run as a normal (non-admin) user even when the app
+    // itself is installed per-machine under Program Files. Each Windows user
+    // gets their own settings, which matches every other Windows convention
+    // (VS Code, Office, etc.).
     public static string GetSettingsPath()
     {
-        var dir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-        return Path.Combine(dir, "IntuneWinAppUtilGUI.settings.json");
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "WrapTune");
+        return Path.Combine(dir, "settings.json");
     }
 
     public static AppSettings Load()
@@ -36,7 +43,18 @@ public sealed class AppSettings
     public void Save()
     {
         var path = GetSettingsPath();
-        var json = JsonSerializer.Serialize(this, JsonOptions);
-        File.WriteAllText(path, json);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            var json = JsonSerializer.Serialize(this, JsonOptions);
+            File.WriteAllText(path, json);
+        }
+        catch
+        {
+            // Settings persistence is best-effort. If AppData is locked,
+            // the disk is full, or some AV intercepts the write, swallow
+            // the error so the app doesn't crash on exit. Worst case the
+            // user re-picks their paths next launch.
+        }
     }
 }
