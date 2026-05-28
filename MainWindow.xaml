@@ -116,6 +116,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Ellipse Width="8" Height="8" Fill="{DynamicResource Accent}" VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
