@@ -12,10 +12,14 @@ on:
 
 permissions:
   contents: write
+  id-token: write  # Required for OIDC: lets GitHub mint a federated token Azure trusts
 
 jobs:
   build-msi:
     runs-on: windows-latest
+    # Must match the subject claim on the federated credential in Azure
+    # (App Registration → Certificates & secrets → Federated credentials).
+    environment: release
 
     steps:
       - name: Checkout
@@ -37,6 +41,24 @@ jobs:
       - name: Build MSI
         shell: pwsh
         run: ./Build-Installer.ps1
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign WrapTune.msi with Azure Artifact Signing
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: thefinder808-signing
+          certificate-profile-name: public-signing
+          files: ${{ github.workspace }}/WrapTune.msi
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
 
       - name: Publish to GitHub Release
         shell: pwsh
