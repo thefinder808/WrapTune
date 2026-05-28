@@ -48,7 +48,16 @@ jobs:
 
       - name: Build MSI
         shell: pwsh
-        run: ./Build-Installer.ps1
+        # Tag form: v1.2.3  ->  MSI version: 1.2.3.0 (MSI requires 4 parts).
+        # The version is templated into Package.wxs via WiX preprocessor and
+        # also flows to WrapTune.exe's AssemblyVersion / FileVersion through
+        # dotnet's default SDK behavior — keeping ARP, file metadata, and
+        # MajorUpgrade comparisons all consistent.
+        run: |
+          $tagVersion = "${{ github.ref_name }}" -replace '^v',''
+          $msiVersion = "$tagVersion.0"
+          Write-Host "Building MSI for tag ${{ github.ref_name }} -> version $msiVersion"
+          ./Build-Installer.ps1 -Version $msiVersion
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2

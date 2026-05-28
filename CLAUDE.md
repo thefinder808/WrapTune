@@ -67,9 +67,21 @@ That's it. CI:
 Takes ~3 minutes. Watch via `gh run watch <id>` or the Actions tab.
 
 **Versioning**: SemVer. Bug fixes = patch (v1.1.1), new features = minor
-(v1.2.0), breaking changes = major (v2.0.0). The Package.wxs `Version="..."`
-attribute is not currently synced with the tag — would need a workflow step
-to template it if you care.
+(v1.2.0), breaking changes = major (v2.0.0).
+
+The tag drives the MSI version end-to-end: CI's "Build MSI" step strips the
+leading `v`, appends `.0` (MSI requires 4 parts), and passes the result to
+`Build-Installer.ps1 -Version`. That value flows to two places:
+
+1. `Package.wxs` via `<DefineConstants>Version=$(Version)</DefineConstants>`
+   in `Installer.wixproj` → `Version="$(var.Version)"`. Drives ARP entry
+   version and `MajorUpgrade` comparisons (so upgrades cleanly replace old
+   installs instead of side-by-side stacking).
+2. `WrapTune.exe`'s AssemblyVersion / FileVersion via .NET SDK's default
+   handling of `-p:Version=...` on `dotnet publish`. Keeps file metadata
+   consistent with MSI metadata.
+
+Local builds default to `0.0.0.0` — unambiguously not a release.
 
 ## Settings file location (important — easy to get wrong)
 

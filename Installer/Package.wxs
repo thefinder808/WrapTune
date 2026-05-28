@@ -2,7 +2,7 @@
   <Package
     Name="WrapTune"
     Manufacturer="thefinder808"
-    Version="1.0.0.0"
+    Version="$(var.Version)"
     UpgradeCode="B7E4F831-2D0A-4C5F-9E8A-1A3B5C7D9E0F"
     Compressed="yes"
     Scope="perMachine"
@@ -75,8 +75,9 @@
     <!-- Desktop shortcut property — checked by default, toggled by OptionsDlg checkbox -->
     <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" />
 
-    <!-- Installer UI: Welcome → Folder picker → Options (checkbox) → Ready → Progress → Complete -->
+    <!-- Installer UI: Welcome → License → Folder picker → Options (checkbox) → Ready → Progress → Complete -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
 
     <!-- Insert OptionsDlg between InstallDirDlg and VerifyReadyDlg -->
     <UI>

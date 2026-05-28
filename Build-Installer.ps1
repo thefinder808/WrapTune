@@ -13,14 +13,18 @@
 #>
 
 param(
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    # Four-part MSI version (Major.Minor.Build.Revision). Defaults to 0.0.0.0
+    # for local builds so they're unambiguously NOT a release. CI passes the
+    # real value derived from the git tag (e.g. v1.1.2 -> 1.1.2.0).
+    [string]$Version = '0.0.0.0'
 )
 
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = $PSScriptRoot
 
-Write-Host '=== Step 1: Publish WrapTune ===' -ForegroundColor Cyan
-dotnet publish "$ProjectRoot\WrapTune.csproj" -c $Configuration
+Write-Host "=== Step 1: Publish WrapTune (v$Version) ===" -ForegroundColor Cyan
+dotnet publish "$ProjectRoot\WrapTune.csproj" -c $Configuration -p:Version=$Version
 if ($LASTEXITCODE -ne 0) { throw 'App publish failed.' }
 
 # Verify the published exe exists
@@ -36,7 +40,7 @@ if (-not (Test-Path $bundledExe)) {
 
 Write-Host ''
 Write-Host '=== Step 2: Build MSI Installer ===' -ForegroundColor Cyan
-dotnet build "$ProjectRoot\Installer\Installer.wixproj" -c $Configuration
+dotnet build "$ProjectRoot\Installer\Installer.wixproj" -c $Configuration -p:Version=$Version
 if ($LASTEXITCODE -ne 0) { throw 'MSI build failed.' }
 
 # Find the output MSI
