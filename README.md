@@ -11,11 +11,19 @@ A friendly GUI for Microsoft's `IntuneWinAppUtil.exe` — the Win32 Content Prep
 - Auto-detects `IntuneWinAppUtil.exe` (app directory → `PATH` → saved setting)
 - Light + dark themes with a one-click toggle (`◐ Dark` / `◑ Light` in the header)
 - Remembers last-used paths, theme, and Overwrite-checkbox state between runs
-- Drag-and-drop a folder or `.exe`/`.msi`/`.ps1` onto any input field
+- Drag-and-drop a folder or installer (`.exe` / `.msi` / `.ps1` / `.cmd` / `.bat`) onto any input field
 - Native dark/light title bar follows the chosen theme (Win10 20H1+ / Win11)
 - Code-signed installer (Azure Artifact Signing) — no "Unknown publisher" prompt
 - Self-contained single-file `.exe` — no .NET runtime required on target machines
 - MSI installer with optional desktop shortcut
+
+## Screenshots
+
+Dark and light themes, toggled from the header:
+
+| Dark | Light |
+|------|-------|
+| ![WrapTune — dark theme](docs/hero.png) | ![WrapTune — light theme](docs/light-mode.png) |
 
 ## Requirements
 
@@ -46,7 +54,7 @@ A friendly GUI for Microsoft's `IntuneWinAppUtil.exe` — the Win32 Content Prep
 
 1. **IntuneWinAppUtil.exe** — point to your local copy (auto-detected if it's beside `WrapTune.exe` or on `PATH`).
 2. **Source folder** — folder containing your installer + supporting files.
-3. **Setup file** — the `.exe` or `.msi` inside the source folder that kicks off your install.
+3. **Setup file** — the installer (`.exe`, `.msi`, `.ps1`, `.cmd`, or `.bat`) inside the source folder that kicks off your install.
 4. **Output folder** — where the resulting `.intunewin` will be written.
 5. Click **Wrap**.
 
@@ -71,6 +79,12 @@ Settings persist per-user in `%LOCALAPPDATA%\WrapTune\settings.json` — no admi
     ├── OptionsDlg.wxs            Custom installer dialog
     └── Bundled/                  IntuneWinAppUtil.exe goes here (gitignored)
 ```
+
+## Support
+
+If WrapTune saves you some clicks, you can support its development:
+
+<a href="https://www.buymeacoffee.com/thefinder808" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50" width="210"></a>
 
 ## License
 
