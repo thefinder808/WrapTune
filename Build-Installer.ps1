@@ -5,6 +5,9 @@
     1. Publishes the C# WPF app as a self-contained single-file exe
     2. Builds the WiX MSI installer (requires IntuneWinAppUtil.exe in Installer\Bundled\)
     3. Copies the final MSI to the project root
+    -Stage Publish runs only step 1 and -Stage Package only steps 2-3, so CI
+    can Authenticode-sign WrapTune.exe in between (WiX picks the exe up from
+    the publish folder, so a signed exe there is what lands in the MSI).
 .NOTES
     Prerequisites:
       - .NET 8+ SDK
@@ -19,20 +22,28 @@ param(
     # AssemblyVersion/FileVersion shape. Defaults to 0.0.0.0 for local
     # builds so they're unambiguously NOT a release. CI passes the real
     # value derived from the git tag (e.g. v1.1.2 -> 1.1.2.0).
-    [string]$Version = '0.0.0.0'
+    [string]$Version = '0.0.0.0',
+    # All = publish + package (local default). CI runs Publish, signs the
+    # exe, then runs Package.
+    [ValidateSet('All', 'Publish', 'Package')]
+    [string]$Stage = 'All'
 )
 
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = $PSScriptRoot
 
-Write-Host "=== Step 1: Publish WrapTune (v$Version) ===" -ForegroundColor Cyan
-dotnet publish "$ProjectRoot\WrapTune.csproj" -c $Configuration -p:Version=$Version
-if ($LASTEXITCODE -ne 0) { throw 'App publish failed.' }
+if ($Stage -ne 'Package') {
+    Write-Host "=== Step 1: Publish WrapTune (v$Version) ===" -ForegroundColor Cyan
+    dotnet publish "$ProjectRoot\WrapTune.csproj" -c $Configuration -p:Version=$Version
+    if ($LASTEXITCODE -ne 0) { throw 'App publish failed.' }
+}
 
 # Verify the published exe exists
 $publishedExe = Join-Path $ProjectRoot "bin\$Configuration\net8.0-windows\win-x64\publish\WrapTune.exe"
 if (-not (Test-Path $publishedExe)) { throw "Published exe not found at: $publishedExe" }
 Write-Host "  Published exe: $publishedExe" -ForegroundColor Green
+
+if ($Stage -eq 'Publish') { return }
 
 # Verify IntuneWinAppUtil.exe is in Bundled
 $bundledExe = Join-Path $ProjectRoot 'Installer\Bundled\IntuneWinAppUtil.exe'
