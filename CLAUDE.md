@@ -66,6 +66,16 @@ That's it. CI:
 
 Takes ~3 minutes. Watch via `gh run watch <id>` or the Actions tab.
 
+**SDK pin (`global.json`).** The repo pins the **.NET 8 SDK** (`8.0.400`,
+`rollForward: latestFeature`), so `dotnet` uses the newest installed 8.0 SDK —
+the one `setup-dotnet` just installed. Without it, `dotnet` picks the
+*highest* SDK on the machine, and GitHub's Windows image ships older .NET 10
+SDKs. v1.1.3 was built by a preinstalled SDK 10.0.402 and so bundled runtime
+**8.0.32** instead of the patched **8.0.33** (a self-contained publish bundles
+whatever runtime patch the *building SDK* knows about). Building locally
+needs a .NET 8 SDK installed. Check a release with `msiextract` +
+`rg -a 'runtimepack.Microsoft.NETCore.App.Runtime.win-x64/' WrapTune.exe`.
+
 **Versioning**: SemVer. Bug fixes = patch (v1.1.1), new features = minor
 (v1.2.0), breaking changes = major (v2.0.0).
 
