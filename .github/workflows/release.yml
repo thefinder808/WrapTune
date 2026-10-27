@@ -46,7 +46,7 @@ jobs:
         shell: pwsh
         run: ./Generate-Icon.ps1
 
-      - name: Build MSI
+      - name: Publish WrapTune.exe
         shell: pwsh
         # Tag form: v1.2.3  ->  MSI version: 1.2.3.0
         # The trailing .0 matches .NET's 4-part AssemblyVersion/FileVersion
@@ -61,16 +61,21 @@ jobs:
         #
         # The tag-shape guard below fails fast on pre-release labels
         # (e.g. v1.2.3-rc1) and tags with too many/few parts, before the
-        # expensive build steps run.
+        # expensive build steps run. The tag arrives via the TAG env var,
+        # not interpolated into the script, so a crafted tag name can't
+        # inject PowerShell.
+        env:
+          TAG: ${{ github.ref_name }}
         run: |
-          $tag = "${{ github.ref_name }}"
+          $tag = $env:TAG
           if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
             throw "Tag '$tag' must be of the form 'vMAJOR.MINOR.PATCH'. Pre-release labels and non-strict-SemVer tags are not supported by the MSI version pipeline."
           }
           $tagVersion = $tag -replace '^v',''
           $msiVersion = "$tagVersion.0"
-          Write-Host "Building MSI for tag $tag -> version $msiVersion"
-          ./Build-Installer.ps1 -Version $msiVersion
+          "MSI_VERSION=$msiVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Host "Publishing WrapTune.exe for tag $tag -> version $msiVersion"
+          ./Build-Installer.ps1 -Version $msiVersion -Stage Publish
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -78,6 +83,24 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign WrapTune.exe with Azure Artifact Signing
+        # Signed in place in the publish folder, before WiX packs it, so the
+        # exe inside the MSI carries its own signature (SmartScreen, WDAC /
+        # app-control policies). Package.wxs sources the exe from this path.
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: thefinder808-signing
+          certificate-profile-name: public-signing
+          files: ${{ github.workspace }}/bin/Release/net8.0-windows/win-x64/publish/WrapTune.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      - name: Build MSI
+        shell: pwsh
+        run: ./Build-Installer.ps1 -Version $env:MSI_VERSION -Stage Package
 
       - name: Sign WrapTune.msi with Azure Artifact Signing
         uses: azure/artifact-signing-action@v2
@@ -89,6 +112,16 @@ jobs:
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
+
+      - name: Verify signatures
+        # Fail the release unless Windows itself trusts both signatures.
+        shell: pwsh
+        run: |
+          foreach ($f in 'bin/Release/net8.0-windows/win-x64/publish/WrapTune.exe', 'WrapTune.msi') {
+            $sig = Get-AuthenticodeSignature $f
+            Write-Host "$f : $($sig.Status) - $($sig.SignerCertificate.Subject)"
+            if ($sig.Status -ne 'Valid') { throw "$f signature is $($sig.Status): $($sig.StatusMessage)" }
+          }
 
       - name: Publish to GitHub Release
         shell: pwsh

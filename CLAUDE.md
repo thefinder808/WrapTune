@@ -60,9 +60,18 @@ That's it. CI:
 
 1. Regenerates `WrapTune.ico` via `Generate-Icon.ps1`
 2. `dotnet publish` → self-contained single-file `WrapTune.exe`
-3. Builds MSI via WiX
-4. Signs MSI with Azure Artifact Signing (OIDC, no client secret)
-5. Creates GitHub Release with `WrapTune.msi` attached
+   (`Build-Installer.ps1 -Stage Publish`)
+3. Signs `WrapTune.exe` in the publish folder with Azure Artifact Signing
+   (OIDC, no client secret) — before WiX packs it, so the installed exe
+   carries its own signature for SmartScreen / WDAC
+4. Builds MSI via WiX (`-Stage Package`)
+5. Signs the MSI the same way
+6. Fails unless `Get-AuthenticodeSignature` reports both as `Valid`
+7. Creates GitHub Release with `WrapTune.msi` attached
+
+Locally, `Build-Installer.ps1` with no `-Stage` (= `All`) still does
+publish + package in one go, unsigned. Releases up to v1.1.4 signed only
+the MSI; the exe inside was unsigned.
 
 Takes ~3 minutes. Watch via `gh run watch <id>` or the Actions tab.
 
@@ -79,10 +88,11 @@ needs a .NET 8 SDK installed. Check a release with `msiextract` +
 **Versioning**: SemVer. Bug fixes = patch (v1.1.1), new features = minor
 (v1.2.0), breaking changes = major (v2.0.0).
 
-The tag drives the MSI version end-to-end: CI's "Build MSI" step strips the
+The tag drives the MSI version end-to-end: CI's "Publish WrapTune.exe" step strips the
 leading `v`, appends `.0` (matches .NET's 4-part AssemblyVersion/FileVersion
 shape; MSI's `MajorUpgrade` comparison only looks at Major.Minor.Build), and
-passes the result to `Build-Installer.ps1 -Version`. CI also enforces a
+passes the result to `Build-Installer.ps1 -Version` (and on to the
+"Build MSI" step via `MSI_VERSION` in `$GITHUB_ENV`). CI also enforces a
 strict `vMAJOR.MINOR.PATCH` tag shape — pre-release labels like `v1.1.2-rc1`
 are rejected up front instead of failing late inside WiX. The version then
 flows to two places:
